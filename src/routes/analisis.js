@@ -139,6 +139,32 @@ router.get('/', async (req, res) => {
   }
 })
 
+// ─── ENDPOINT · DELETE /analisis/:id ─────────────────────────────────────────
+// Elimina un análisis y sus datos relacionados (reporte, métricas)
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    if (!id || isNaN(Number(id))) {
+      return res.status(400).json({ ok: false, error: 'ID inválido' })
+    }
+
+    // Verificar que el análisis exista
+    const existe = await query('SELECT id FROM tbl_analisis WHERE id = $1', [id])
+    if (!existe.rows.length) {
+      return res.status(404).json({ ok: false, error: 'Análisis no encontrado' })
+    }
+
+    // Eliminar en orden para respetar FK: reporte → métricas → análisis
+    await query('DELETE FROM tbl_reporte WHERE id_analisis = $1', [id])
+    await query('DELETE FROM tbl_analisis_x_jugador WHERE id_analisis = $1', [id])
+    await query('DELETE FROM tbl_analisis WHERE id = $1', [id])
+
+    res.json({ ok: true })
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message })
+  }
+})
+
 // ─── ENDPOINT 8 · GET /analisis/:id/reporte ── LÓGICA COMPLEJA ───────────────
 // Reporte detallado de un análisis: scores por dimensión, conclusión,
 // brechas por categoría, jugador recomendado con justificación
