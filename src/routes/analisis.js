@@ -115,19 +115,24 @@ router.post('/', async (req, res) => {
 })
 
 // ─── ENDPOINT 7 · GET /analisis ───────────────────────────────────────────────
-// Lista todos los análisis realizados
+// Lista análisis del usuario autenticado (filtrado por email)
 router.get('/', async (req, res) => {
   try {
+    const { email } = req.query
+    if (!email) return res.json({ ok: true, data: [] })
+
     const result = await query(`
       SELECT a.id, a.titulo, a.creado_en, a.partidas_n,
              r.ganador_id, r.diferencia,
              j.game_name AS ganador_nombre
       FROM tbl_analisis a
+      JOIN tbl_usuario u          ON u.id = a.id_usuario
       LEFT JOIN tbl_reporte r     ON r.id_analisis = a.id
       LEFT JOIN tbl_jugador j     ON j.id = r.ganador_id
+      WHERE u.email = $1
       ORDER BY a.creado_en DESC
       LIMIT 50
-    `)
+    `, [email])
     res.json({ ok: true, data: result.rows })
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message })

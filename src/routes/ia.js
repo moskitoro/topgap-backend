@@ -11,7 +11,7 @@ router.get('/:id/ia', async (req, res) => {
     const { id } = req.params
 
     const jugadores = await query(`
-      SELECT axj.*, j.game_name, r.codigo as region, r.label
+      SELECT axj.*, j.game_name, r.codigo as region, r.nombre as region_nombre
       FROM tbl_analisis_x_jugador axj
       JOIN tbl_jugador j ON axj.id_jugador = j.id
       JOIN tbl_region r  ON j.id_region = r.id
