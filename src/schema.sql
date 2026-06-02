@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════
---  TopGap · Schema completo · 12 tablas relacionadas
+--  TopGap · Schema completo · 13 tablas relacionadas
 -- ══════════════════════════════════════════════════════
 
 -- 1. Regiones (LAN, NA, KR, EUW, etc.)
@@ -123,6 +123,18 @@ CREATE TABLE IF NOT EXISTS tbl_reporte (
   diferencia    INT,
   conclusion    TEXT,
   creado_en     TIMESTAMP DEFAULT NOW()
+);
+
+-- 13. Tier/Rango competitivo del jugador
+CREATE TABLE IF NOT EXISTS tbl_tier (
+  id            SERIAL PRIMARY KEY,
+  id_jugador    INT REFERENCES tbl_jugador(id) ON DELETE CASCADE,
+  liga          VARCHAR(20) NOT NULL,  -- IRON, BRONZE, SILVER, GOLD, PLATINUM, EMERALD, DIAMOND, MASTER, GRANDMASTER, CHALLENGER
+  division      VARCHAR(5),            -- I, II, III, IV (NULL para Master+)
+  lp            INT DEFAULT 0,
+  victorias     INT DEFAULT 0,
+  derrotas      INT DEFAULT 0,
+  actualizado_en TIMESTAMP DEFAULT NOW()
 );
 
 -- ── Datos base ────────────────────────────────────────────────────────────────
