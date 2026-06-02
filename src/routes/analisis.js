@@ -8,7 +8,7 @@ const { obtenerMetricasJugador } = require('../riot')
 // guarda jugadores, métricas y reporte en la BD
 router.post('/', async (req, res) => {
   try {
-    const { riotId1, region1, riotId2, region2, emailUsuario } = req.body
+    const { riotId1, region1, riotId2, region2, emailUsuario, metricas1, metricas2, partidasN } = req.body
     if (!riotId1 || !riotId2) return res.status(400).json({ ok: false, error: 'Se requieren dos jugadores' })
 
     // 1. Obtener o crear usuario
@@ -21,11 +21,22 @@ router.post('/', async (req, res) => {
     }
     const idUsuario = usuario.rows[0].id
 
-    // 2. Fetch Riot API para ambos jugadores en paralelo
-    const [data1, data2] = await Promise.all([
-      obtenerMetricasJugador(riotId1, region1),
-      obtenerMetricasJugador(riotId2, region2),
-    ])
+    // 2. Usar métricas precalculadas del frontend si vienen; si no, llamar a Riot
+    let data1, data2
+    if (metricas1 && metricas2) {
+      // El frontend ya calculó todo — usamos sus datos directamente
+      const [gameName1, tagLine1] = riotId1.includes('#') ? riotId1.split('#') : [riotId1, region1.toUpperCase()]
+      const [gameName2, tagLine2] = riotId2.includes('#') ? riotId2.split('#') : [riotId2, region2.toUpperCase()]
+      data1 = { gameName: gameName1, tagLine: tagLine1, puuid: metricas1.puuid || '', partidasAnalizadas: metricas1.partidasAnalizadas || 10, metricas: metricas1 }
+      data2 = { gameName: gameName2, tagLine: tagLine2, puuid: metricas2.puuid || '', partidasAnalizadas: metricas2.partidasAnalizadas || 10, metricas: metricas2 }
+    } else {
+      const results = await Promise.all([
+        obtenerMetricasJugador(riotId1, region1),
+        obtenerMetricasJugador(riotId2, region2),
+      ])
+      data1 = results[0]
+      data2 = results[1]
+    }
 
     if (data1.error) return res.status(400).json({ ok: false, error: `Jugador 1: ${data1.error}` })
     if (data2.error) return res.status(400).json({ ok: false, error: `Jugador 2: ${data2.error}` })
@@ -50,10 +61,10 @@ router.post('/', async (req, res) => {
 
     // 4. Crear sesión de análisis
     const titulo = `${data1.gameName} vs ${data2.gameName}`
-    const partidasN = Math.min(data1.partidasAnalizadas || 10, data2.partidasAnalizadas || 10)
+    const partidasN_ = partidasN || Math.min(data1.partidasAnalizadas || 10, data2.partidasAnalizadas || 10)
     const analisis = await query(
       'INSERT INTO tbl_analisis (id_usuario, titulo, partidas_n) VALUES ($1, $2, $3) RETURNING id',
-      [idUsuario, titulo, partidasN]
+      [idUsuario, titulo, partidasN_]
     )
     const idAnalisis = analisis.rows[0].id
 
