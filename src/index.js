@@ -6,7 +6,14 @@ const { setupDB } = require('./setup')
 const app  = express()
 const PORT = process.env.PORT || 4000
 
-app.use(cors({ origin: process.env.FRONTEND_URL || '*' }))
+app.use(cors({
+  origin: [
+    process.env.FRONTEND_URL || '*',
+    'https://mvp-toplaners-i5jc.vercel.app',
+    'http://localhost:3000'
+  ],
+  credentials: true
+}))
 app.use(express.json())
 
 // ── Rutas ─────────────────────────────────────────────────────────────────────
