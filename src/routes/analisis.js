@@ -50,9 +50,10 @@ router.post('/', async (req, res) => {
 
     // 4. Crear sesión de análisis
     const titulo = `${data1.gameName} vs ${data2.gameName}`
+    const partidasN = Math.min(data1.partidasAnalizadas || 10, data2.partidasAnalizadas || 10)
     const analisis = await query(
       'INSERT INTO tbl_analisis (id_usuario, titulo, partidas_n) VALUES ($1, $2, $3) RETURNING id',
-      [idUsuario, titulo, data1.partidasAnalizadas]
+      [idUsuario, titulo, partidasN]
     )
     const idAnalisis = analisis.rows[0].id
 

@@ -19,6 +19,7 @@ app.use(express.json())
 // ── Rutas ─────────────────────────────────────────────────────────────────────
 app.use('/api/jugadores', require('./routes/jugadores'))
 app.use('/api/analisis',  require('./routes/analisis'))
+app.use('/api/analisis',  require('./routes/ia'))
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => res.json({ ok: true, service: 'TopGap API', version: '1.0.0' }))

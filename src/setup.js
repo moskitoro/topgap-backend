@@ -34,10 +34,13 @@ async function setupDB() {
     id SERIAL PRIMARY KEY, riot_id VARCHAR(50) UNIQUE NOT NULL,
     nombre VARCHAR(50) NOT NULL, id_rol INT REFERENCES tbl_rol(id))`)
 
-  // 6. Usuarios de la plataforma
+  // 6. Usuarios de la plataforma (con google_id para OAuth)
   await run(`CREATE TABLE IF NOT EXISTS tbl_usuario (
     id SERIAL PRIMARY KEY, email VARCHAR(150) UNIQUE NOT NULL,
-    nombre VARCHAR(150), avatar_url TEXT, creado_en TIMESTAMP DEFAULT NOW())`)
+    nombre VARCHAR(150), avatar_url TEXT,
+    google_id VARCHAR(100) UNIQUE,
+    creado_en TIMESTAMP DEFAULT NOW())`)
+  await run(`ALTER TABLE tbl_usuario ADD COLUMN IF NOT EXISTS google_id VARCHAR(100) UNIQUE`)
 
   // 7. Jugadores
   await run(`CREATE TABLE IF NOT EXISTS tbl_jugador (
